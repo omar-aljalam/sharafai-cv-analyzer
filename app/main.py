@@ -6,6 +6,7 @@ app = FastAPI(
     version="1.0",
 )
 
+
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to the SharafAI CV Analyzer API!"}

@@ -14,4 +14,5 @@ class Settings(BaseSettings):
     postgres_password: str = ""
     postgres_db: str = ""
 
+
 settings = Settings()
