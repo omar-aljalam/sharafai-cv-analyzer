@@ -37,6 +37,3 @@ ENV PYTHONUNBUFFERED=1
 ENV PORT=8080
 
 ENTRYPOINT [ "/app/entrypoint.sh" ]
-
-# exec replaces shell so fastapi receives SIGTERM for clean shutdown
-CMD ["/bin/sh", "-c", "exec fastapi run --host 0.0.0.0 --port \"$PORT\" --proxy-headers --forwarded-allow-ips '*'"]

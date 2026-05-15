@@ -12,4 +12,7 @@ echo "Executing database migrations..."
 alembic upgrade head
 
 echo "Starting the FastAPI application..."
-exec fastapi run app/main.py --host 0.0.0.0 --port "$PORT" --proxy-headers --forwarded-allow-ips '*'
+# For Development, you might want to use `fastapi dev` for auto-reloading.
+exec fastapi dev app/main.py --host 0.0.0.0 --port "$PORT" --proxy-headers --forwarded-allow-ips '*'
+# For Production, use `fastapi run` for better performance.
+# exec fastapi run app/main.py --host 0.0.0.0 --port "$PORT" --proxy-headers --forwarded-allow-ips '*'
