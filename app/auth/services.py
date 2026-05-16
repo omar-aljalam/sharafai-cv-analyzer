@@ -1,3 +1,5 @@
+import random
+import string
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
@@ -19,18 +21,37 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/users/login")
 
 
 def hash_password(password: str) -> str:
+    """
+    Hashes a plaintext password using the recommended hashing algorithm.
+    """
     return password_hash.hash(password)
 
 
 def verify_password(
     plain_password: str, hashed_password: str
 ) -> bool:
+    """
+    Verifies a plaintext password against a hashed password.
+    """
     return password_hash.verify(plain_password, hashed_password)
+
+
+def generate_otp(length: int = 6) -> str:
+    """Generate a random numeric OTP code."""
+    return "".join(random.choices(string.digits, k=length))
+
+
+def is_otp_expired(
+    created_at: datetime, expire_minutes: int = 10
+) -> bool:
+    """Return True if the OTP is older than expire_minutes."""
+    now = datetime.now(UTC)
+    return now > created_at + timedelta(minutes=expire_minutes)
 
 
 def create_access_token(
     data: dict, expires_delta: timedelta | None = None
-):
+) -> str:
     """
     Creates a JWT access token with the given data and expiration time.
     """
@@ -60,8 +81,10 @@ def verify_access_token(token: str) -> dict | None:
         payload = jwt.decode(
             token,
             settings.secret_key.get_secret_value(),
-            algorithms=settings.algorithm,
-            options={"require": ["exp", "sub"]},
+            algorithms=[settings.algorithm],
+            options={
+                "require": ["exp", "sub"]
+            },  # Ensure 'exp' and 'sub' claims are present
         )
     except jwt.InvalidTokenError:
         return None
