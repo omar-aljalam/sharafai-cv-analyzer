@@ -66,31 +66,23 @@ pip freeze > requirements.txt
 
 ---
 
-## 🗄️ Database Migrations (Alembic)
+## Database Migrations (Alembic)
 
 Whenever you make changes or additions to your database tables inside `app/models.py`, you must generate a new migration tracking script so the database updates its structure.
 
-You can generate this script using **either** your local terminal or directly inside the running Docker container.
+You can generate this script using  directly inside the running Docker container.
 
-### Option A: Using Docker (Safest / No Local Setup Needed)
+### Using Docker
 ```bash
 docker compose exec web alembic revision --autogenerate -m "describe your schema changes here"
-```
-
-### Option B: Using Your Local Terminal 
-Run this command from your project root folder:
-```bash
-alembic revision --autogenerate -m "describe your schema changes here"
 ```
 ---
 
 ### Verify Your Configuration State
 To ensure your environment file is properly linked and communicating with the database without making structural alterations, run:
 ```bash
-docker compose exec web alembic 
+docker compose exec web alembic current
 
-# OR via local terminal:
-alembic current
 ```
 * **Why?** This acts as a safe connectivity test. It checks if your environment successfully reads your root `.env` file, hooks into the active database, and displays your current database schema state without modifying anything.
 * **Note on Deploying Migrations:** Our `entrypoint.sh` container startup script automatically runs `alembic upgrade head` every time the Docker stack boots up. However, if Docker is **already running** when you generate a new migration, it will not apply live automatically. You must apply it manually by running:
