@@ -25,5 +25,6 @@ class Settings(BaseSettings):
     mail_from: str = "noreply@sharafiai.com"
     mail_use_tls: bool = True
 
+    ai_service_url: str = "http://localhost:8001/analyze"
 
 settings = Settings()

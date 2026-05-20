@@ -1,12 +1,13 @@
 from typing import Annotated
 
+from analysis.router import router as analysis_router
 from auth.router import router as auth_router
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.models import PasswordResetOTP, User  # noqa F401
+from app.models import Analysis, PasswordResetOTP, User  # noqa F401
 
 app = FastAPI(
     title="SharafAI CV Analyzer API",
@@ -15,6 +16,7 @@ app = FastAPI(
 )
 
 app.include_router(auth_router)
+app.include_router(analysis_router)
 
 
 @app.middleware("http")
