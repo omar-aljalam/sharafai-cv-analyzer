@@ -229,3 +229,147 @@ Permanently delete the logged-in user's account and all associated data.
 **Response `204`** — no content, deletion successful
 
 ---
+
+## Analysis API
+
+All endpoints require authentication via a Bearer JWT token:
+```
+Authorization: Bearer <access_token>
+```
+
+---
+
+### POST `/api/analyses/upload`
+
+Upload a CV file. The backend extracts text from the file, sends it to the AI service, saves the result, and returns the full analysis.
+
+**Request — `multipart/form-data`**
+
+| Field  | Type | Required | Details                        |
+|--------|------|----------|--------------------------------|
+| `file` | File | ✅       | PDF, JPG, or PNG — max 10 MB  |
+
+**Response `201`**
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "overall_score": 74.5,
+  "sections": [
+    {
+      "name": "Work Experience",
+      "score": 68.0,
+      "errors": [
+        {
+          "text": "No measurable achievements mentioned",
+          "severity": "warning"
+        }
+      ],
+      "suggestions": [
+        "Use action verbs and quantify results (e.g. 'Increased sales by 20%')"
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "text": "No measurable achievements mentioned",
+      "severity": "warning"
+    }
+  ],
+  "suggestions": [
+    {
+      "original": "Responsible for sales",
+      "suggested": "Drove a 20% increase in regional sales over 12 months",
+      "section": "Work Experience"
+    }
+  ],
+  "created_at": "2026-05-20T10:00:00Z"
+}
+```
+
+**Error responses**
+
+| Code  | Detail                                                       |
+|-------|--------------------------------------------------------------|
+| `401` | Missing or invalid token                                     |
+| `413` | File exceeds the 10 MB limit                                 |
+| `415` | Unsupported file type (only PDF, JPG, PNG accepted)          |
+| `422` | No text could be extracted from the file                     |
+| `429` | User has reached their analysis limit                        |
+| `502` | AI service returned an unexpected response                   |
+| `504` | AI service did not respond in time (timeout)                 |
+
+---
+
+### GET `/api/analyses/history`
+
+Returns the current user's past analyses sorted newest first.
+
+**Response `200`**
+```json
+{
+  "items": [
+    {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "overall_score": 74.5,
+      "created_at": "2026-05-20T10:00:00Z"
+    }
+  ],
+  "total": 1
+}
+```
+
+**Error responses**
+
+| Code  | Detail                   |
+|-------|--------------------------|
+| `401` | Missing or invalid token |
+
+---
+
+### GET `/api/analyses/{analysis_id}`
+
+Returns the full result of a single past analysis belonging to the current user.
+
+**Path parameter**
+
+| Parameter     | Type   | Details      |
+|---------------|--------|--------------|
+| `analysis_id` | UUID   | Analysis ID  |
+
+**Response `200`** — same shape as the upload response above.
+
+**Error responses**
+
+| Code  | Detail                                        |
+|-------|-----------------------------------------------|
+| `401` | Missing or invalid token                      |
+| `404` | Analysis not found or belongs to another user |
+
+---
+
+### GET `/api/analyses/{analysis_id}/export`
+
+Downloads the corrected CV as a watermarked PDF file.
+
+**Path parameter**
+
+| Parameter     | Type | Details     |
+|---------------|------|-------------|
+| `analysis_id` | UUID | Analysis ID |
+
+**Response `200`**
+
+Binary PDF stream.
+
+```
+Content-Type: application/pdf
+Content-Disposition: attachment; filename="sharafai_cv_<analysis_id>.pdf"
+```
+
+**Error responses**
+
+| Code  | Detail                                        |
+|-------|-----------------------------------------------|
+| `401` | Missing or invalid token                      |
+| `404` | Analysis not found or belongs to another user |
+| `500` | PDF generation failed                         |
